@@ -1,13 +1,7 @@
-/**
- * I18n interface for input and textarea fields.
- *
- * @author    Alexander Ebert [modified by Florian Gail]
- * @copyright    2001-2015 WoltLab GmbH
- * @license    GNU Lesser General Public License <http://opensource.org/licenses/lgpl-license.php>
- * @module    MysteryCode/Core/Language/Wysiwyg
- */
-define(['Core', 'Dictionary', 'Language', 'ObjectMap', 'StringUtil', 'Dom/Traverse', 'Dom/Util', 'Ui/SimpleDropdown'], function (Core, Dictionary, Language, ObjectMap, StringUtil, DomTraverse, DomUtil, UiSimpleDropdown) {
+define(['Core', 'Dictionary', 'Language', 'ObjectMap', 'StringUtil', 'Dom/Traverse', 'Dom/Util', 'Ui/SimpleDropdown'
+], function(Core, Dictionary, Language, ObjectMap, StringUtil, DomTraverse, DomUtil, UiSimpleDropdown) {
 	"use strict";
+
 	var _elements = new Dictionary();
 	var _didInit = false;
 	var _forms = new ObjectMap();
@@ -28,7 +22,7 @@ define(['Core', 'Dictionary', 'Language', 'ObjectMap', 'StringUtil', 'Dom/Traver
 		 * @param       {Object}        availableLanguages      language names per language id
 		 * @param       {boolean}       forceSelection          require i18n input
 		 */
-		init: function (elementId, values, availableLanguages, forceSelection) {
+		init: function(elementId, values, availableLanguages, forceSelection) {
 			if (_values.has(elementId)) {
 				return;
 			}
@@ -56,7 +50,7 @@ define(['Core', 'Dictionary', 'Language', 'ObjectMap', 'StringUtil', 'Dom/Traver
 		/**
 		 * Caches common event listener callbacks.
 		 */
-		_setup: function () {
+		_setup: function() {
 			if (_didInit) return;
 			_didInit = true;
 
@@ -73,17 +67,25 @@ define(['Core', 'Dictionary', 'Language', 'ObjectMap', 'StringUtil', 'Dom/Traver
 		 * @param    {object<integer, string>}    availableLanguages    language names per language id
 		 * @param    {boolean}            forceSelection        require i18n input
 		 */
-		_initElement: function (elementId, element, values, availableLanguages, forceSelection) {
+		_initElement: function(elementId, element, values, availableLanguages, forceSelection) {
 			var container = element.parentNode;
-			var redactorContainer = element.parentNode
-
 			if (!container.classList.contains('inputAddon')) {
 				container = elCreate('div');
 				container.className = 'inputAddon' + (element.nodeName === 'TEXTAREA' ? ' inputAddonTextarea' : '') + ' inputAddonRedactor';
+				// cs
+				container.id = elementId + 'Container';
+				// ce
+				//noinspection JSCheckFunctionSignatures
 				elData(container, 'input-id', elementId);
+
 				element.parentNode.insertBefore(container, element);
 				container.appendChild(element);
 			}
+
+			// cs
+			var buttonContainer = elCreate('div');
+			buttonContainer.className = 'redactori18nDropdown';
+			// ce
 
 			container.classList.add('dropdown');
 			var button = elCreate('span');
@@ -93,13 +95,16 @@ define(['Core', 'Dictionary', 'Language', 'ObjectMap', 'StringUtil', 'Dom/Traver
 			span.textContent = Language.get('wcf.global.button.disabledI18n');
 
 			button.appendChild(span);
-			container.insertBefore(button, element);
+			// cs
+			buttonContainer.appendChild(button);
+			container.insertBefore(buttonContainer, element);
+			// ce
 
 			var dropdownMenu = elCreate('ul');
 			dropdownMenu.className = 'dropdownMenu';
 			DomUtil.insertAfter(dropdownMenu, button);
 
-			var callbackClick = (function (event, isInit) {
+			var callbackClick = (function(event, isInit) {
 				var languageId = ~~elData(event.currentTarget, 'language-id');
 
 				var activeItem = DomTraverse.childByClass(dropdownMenu, 'active');
@@ -177,7 +182,7 @@ define(['Core', 'Dictionary', 'Language', 'ObjectMap', 'StringUtil', 'Dom/Traver
 			}
 
 			if (activeItem !== null) {
-				callbackClick({currentTarget: activeItem}, true);
+				callbackClick({ currentTarget: activeItem }, true);
 			}
 		},
 
@@ -188,11 +193,17 @@ define(['Core', 'Dictionary', 'Language', 'ObjectMap', 'StringUtil', 'Dom/Traver
 		 * @param       {int}           languageId      language id or `0` to disable i18n
 		 * @param       {boolean}       isInit          triggers pre-selection on init
 		 */
-		_select: function (elementId, languageId, isInit) {
+		_select: function(elementId, languageId, isInit) {
 			var data = _elements.get(elementId);
 
-			var dropDownContainer = $('#' + elementId).closest('.inputAddon')[0];
-			var dropdownMenu = UiSimpleDropdown.getDropdownMenu(dropDownContainer.id);
+			// cs
+			var container = data.element.parentNode.parentNode;
+			if (container.id == '') {
+				container.id = elementId + 'Container';
+			}
+			var dropdownMenu = UiSimpleDropdown.getDropdownMenu(container.id);
+			// ce
+
 			var item, label = '';
 
 			for (var i = 0, length = dropdownMenu.childElementCount; i < length; i++) {
@@ -209,17 +220,19 @@ define(['Core', 'Dictionary', 'Language', 'ObjectMap', 'StringUtil', 'Dom/Traver
 				var values = _values.get(elementId);
 
 				if (data.languageId) {
-					values.set(data.languageId, data.element.value);
+					values.set(data.languageId, this._readCurrentValue(data));
 				}
 
 				if (languageId === 0) {
 					_values.set(elementId, new Dictionary());
 				}
 				else if (data.buttonLabel.classList.contains('active') || isInit === true) {
+					// cs
 					var redactor = $('#' + elementId).data('redactor');
 					if (redactor !== undefined) {
-						redactor.code.start(redactor.code.cleaned((values.has(languageId)) ? values.get(languageId) : ''));
+						$('#' + elementId).redactor('code.set', values.get(languageId));
 					}
+					// ce
 				}
 
 				// update label
@@ -229,8 +242,19 @@ define(['Core', 'Dictionary', 'Language', 'ObjectMap', 'StringUtil', 'Dom/Traver
 				data.languageId = languageId;
 			}
 
-			data.element.blur();
-			data.element.focus();
+			if (!isInit) {
+				data.element.blur();
+				data.element.focus();
+			}
+		},
+
+		/**
+		 * Returns the current value of the editor
+		 *
+		 * @param data
+		 */
+		_readCurrentValue: function(data) {
+			return data.element.value;
 		},
 
 		/**
@@ -239,7 +263,7 @@ define(['Core', 'Dictionary', 'Language', 'ObjectMap', 'StringUtil', 'Dom/Traver
 		 * @param       {string}        containerId     dropdown container id
 		 * @param       {string}        action          toggle action, can be `open` or `close`
 		 */
-		_dropdownToggle: function (containerId, action) {
+		_dropdownToggle: function(containerId, action) {
 			if (action !== 'open') {
 				return;
 			}
@@ -256,9 +280,9 @@ define(['Core', 'Dictionary', 'Language', 'ObjectMap', 'StringUtil', 'Dom/Traver
 
 				if (languageId) {
 					var hasMissingValue = false;
-					if (data.languageId) {
+					if (data !== undefined && data.languageId) {
 						if (languageId === data.languageId) {
-							hasMissingValue = (data.element.value.trim() === '');
+							hasMissingValue = (this._readCurrentValue(data).trim() === '');
 						}
 						else {
 							hasMissingValue = (!values.get(languageId));
@@ -275,7 +299,7 @@ define(['Core', 'Dictionary', 'Language', 'ObjectMap', 'StringUtil', 'Dom/Traver
 		 *
 		 * @param       {Object}        event           event object
 		 */
-		_submit: function (event) {
+		_submit: function(event) {
 			var elementIds = _forms.get(event.currentTarget);
 
 			var data, elementId, input, values;
@@ -287,11 +311,11 @@ define(['Core', 'Dictionary', 'Language', 'ObjectMap', 'StringUtil', 'Dom/Traver
 
 					// update with current value
 					if (data.languageId) {
-						values.set(data.languageId, data.element.value);
+						values.set(data.languageId, this._readCurrentValue(data));
 					}
 
 					if (values.size) {
-						values.forEach(function (value, languageId) {
+						values.forEach(function(value, languageId) {
 							input = elCreate('input');
 							input.type = 'hidden';
 							input.name = elementId + '_i18n[' + languageId + ']';
@@ -313,7 +337,7 @@ define(['Core', 'Dictionary', 'Language', 'ObjectMap', 'StringUtil', 'Dom/Traver
 		 * @param       {string}        elementId       input element id
 		 * @return      {Dictionary}    values stored for the different languages
 		 */
-		getValues: function (elementId) {
+		getValues: function(elementId) {
 			var element = _elements.get(elementId);
 			if (element === undefined) {
 				throw new Error("Expected a valid i18n input element, '" + elementId + "' is not i18n input field.");
@@ -333,7 +357,7 @@ define(['Core', 'Dictionary', 'Language', 'ObjectMap', 'StringUtil', 'Dom/Traver
 		 * @param       {string}        elementId       input element id
 		 * @param       {Dictionary}    values          values for the different languages
 		 */
-		setValues: function (elementId, values) {
+		setValues: function(elementId, values) {
 			var element = _elements.get(elementId);
 			if (element === undefined) {
 				throw new Error("Expected a valid i18n input element, '" + elementId + "' is not i18n input field.");
@@ -362,7 +386,7 @@ define(['Core', 'Dictionary', 'Language', 'ObjectMap', 'StringUtil', 'Dom/Traver
 		 *
 		 * @param       {string}        elementId       input element id
 		 */
-		disable: function (elementId) {
+		disable: function(elementId) {
 			var element = _elements.get(elementId);
 			if (element === undefined) {
 				throw new Error("Expected a valid i18n input element, '" + elementId + "' is not i18n input field.");
@@ -385,7 +409,7 @@ define(['Core', 'Dictionary', 'Language', 'ObjectMap', 'StringUtil', 'Dom/Traver
 		 *
 		 * @param       {string}        elementId       input element id
 		 */
-		enable: function (elementId) {
+		enable: function(elementId) {
 			var element = _elements.get(elementId);
 			if (element === undefined) {
 				throw new Error("Expected a valid i18n input element, '" + elementId + "' is not i18n input field.");
@@ -409,7 +433,7 @@ define(['Core', 'Dictionary', 'Language', 'ObjectMap', 'StringUtil', 'Dom/Traver
 		 * @param       {string}        elementId       input element id
 		 * @return      {boolean}
 		 */
-		isEnabled: function (elementId) {
+		isEnabled: function(elementId) {
 			var element = _elements.get(elementId);
 			if (element === undefined) {
 				throw new Error("Expected a valid i18n input element, '" + elementId + "' is not i18n input field.");
@@ -427,7 +451,7 @@ define(['Core', 'Dictionary', 'Language', 'ObjectMap', 'StringUtil', 'Dom/Traver
 		 * @param       {boolean}       permitEmptyValue        if true, input may be empty for all languages
 		 * @return      {boolean}       true if input is valid
 		 */
-		validate: function (elementId, permitEmptyValue) {
+		validate: function(elementId, permitEmptyValue) {
 			var element = _elements.get(elementId);
 			if (element === undefined) {
 				throw new Error("Expected a valid i18n input element, '" + elementId + "' is not i18n input field.");

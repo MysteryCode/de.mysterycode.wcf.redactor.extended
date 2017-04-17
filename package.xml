@@ -3,8 +3,8 @@
 	<packageinformation>
 		<packagename>Redactor: Extension</packagename>
 		<packagedescription><![CDATA[Implements some features like multilingual support.]]></packagedescription>
-		<version>1.0.0 Alpha 1</version>
-		<date>2016-12-15</date>
+		<version>1.0.0 Beta 1</version>
+		<date>2017-04-17</date>
 	</packageinformation>
 
 	<authorinformation>
@@ -13,7 +13,7 @@
 	</authorinformation>
 
 	<requiredpackages>
-		<requiredpackage minversion="3.0.0 Alpha 1">com.woltlab.wcf</requiredpackage>
+		<requiredpackage minversion="3.0.0">com.woltlab.wcf</requiredpackage>
 	</requiredpackages>
 
 	<excludedpackages>
@@ -24,5 +24,9 @@
 		<instruction type="file" />
 		<instruction type="acpTemplate" />
 		<instruction type="template" />
+	</instructions>
+
+	<instructions type="update" fromversion="1.0.0 Alpha 1">
+		<instruction type="file" />
 	</instructions>
 </package>
