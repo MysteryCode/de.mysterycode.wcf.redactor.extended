@@ -98,6 +98,11 @@ abstract class MultilingualMessageForm extends MessageForm {
 		}
 	}
 	
+	/**
+	 * @param $field
+	 * @throws \RuntimeException
+	 * @throws \wcf\system\exception\UserInputException
+	 */
 	protected function validateMultilingualMessageField($field) {
 		if (empty($this->messageObjectType)) {
 			throw new \RuntimeException("Expected non-empty message object type for '".get_class($this)."'");
@@ -120,15 +125,15 @@ abstract class MultilingualMessageForm extends MessageForm {
 			$this->htmlInputProcessors[$field][$languageID]->process($value, $this->messageObjectType, 0);
 			
 			// check text length
-			if (!in_array($field, $this->mayEmptyMultilingualFields) && $this->htmlInputProcessor->appearsToBeEmpty()) {
+			if (!in_array($field, $this->mayEmptyMultilingualFields) && $this->htmlInputProcessors[$field][$languageID]->appearsToBeEmpty()) {
 				throw new UserInputException($field);
 			}
-			$message = $this->htmlInputProcessor->getTextContent();
+			$message = $this->htmlInputProcessors[$field][$languageID]->getTextContent();
 			if ($this->maxTextLength != 0 && mb_strlen($message) > $this->maxTextLength) {
 				throw new UserInputException($field, 'tooLong');
 			}
 			
-			$disallowedBBCodes = $this->htmlInputProcessor->validate();
+			$disallowedBBCodes = $this->htmlInputProcessors[$field][$languageID]->validate();
 			if (!empty($disallowedBBCodes)) {
 				WCF::getTPL()->assign('disallowedBBCodes', $disallowedBBCodes);
 				throw new UserInputException($field, 'disallowedBBCodes');
@@ -140,6 +145,36 @@ abstract class MultilingualMessageForm extends MessageForm {
 				if ($result) {
 					WCF::getTPL()->assign('censoredWords', $result);
 					throw new UserInputException($field, 'censoredWordsFound');
+				}
+			}
+		}
+	}
+	
+	/**
+	 * @inheritDoc
+	 */
+	public function validateSubject() {
+		if (!in_array('subject', $this->multilingualFields) || I18nHandler::getInstance()->isPlainValue('subject')) {
+			parent::validateSubject();
+		} else {
+			if (!I18nHandler::getInstance()->validateValue('subject')) {
+				throw new UserInputException('subject', 'multilingual');
+			}
+			
+			$values = I18nHandler::getInstance()->getValues('subject');
+			foreach ($values as $languageID => $value) {
+				if (mb_strlen($value) > 255) {
+					$values[$languageID] = mb_substr($value, 0, 255);
+					I18nHandler::getInstance()->setValues('subject', $values);
+				}
+				
+				// search for censored words
+				if (ENABLE_CENSORSHIP) {
+					$result = Censorship::getInstance()->test($value);
+					if ($result) {
+						WCF::getTPL()->assign('censoredWords', $result);
+						throw new UserInputException('subject', 'censoredWordsFound');
+					}
 				}
 			}
 		}
@@ -169,15 +204,15 @@ abstract class MultilingualMessageForm extends MessageForm {
 				$this->htmlInputProcessors['text'][$languageID]->process($value, $this->messageObjectType, 0);
 				
 				// check text length
-				if ($this->htmlInputProcessor->appearsToBeEmpty()) {
+				if ($this->htmlInputProcessors['text'][$languageID]->appearsToBeEmpty()) {
 					throw new UserInputException('text');
 				}
-				$message = $this->htmlInputProcessor->getTextContent();
+				$message = $this->htmlInputProcessors['text'][$languageID]->getTextContent();
 				if ($this->maxTextLength != 0 && mb_strlen($message) > $this->maxTextLength) {
 					throw new UserInputException('text', 'tooLong');
 				}
 				
-				$disallowedBBCodes = $this->htmlInputProcessor->validate();
+				$disallowedBBCodes = $this->htmlInputProcessors['text'][$languageID]->validate();
 				if (!empty($disallowedBBCodes)) {
 					WCF::getTPL()->assign('disallowedBBCodes', $disallowedBBCodes);
 					throw new UserInputException('text', 'disallowedBBCodes');
@@ -192,6 +227,17 @@ abstract class MultilingualMessageForm extends MessageForm {
 					}
 				}
 			}
+		}
+	}
+	
+	/**
+	 * @inheritDoc
+	 */
+	public function save() {
+		if (!in_array('subject', $this->multilingualFields) || I18nHandler::getInstance()->isPlainValue('subject')) {
+			parent::save();
+		} else {
+			AbstractCaptchaForm::save();
 		}
 	}
 	
