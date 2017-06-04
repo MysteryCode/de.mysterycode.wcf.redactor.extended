@@ -9,7 +9,15 @@ use wcf\system\language\I18nHandler;
 use wcf\system\message\censorship\Censorship;
 use wcf\system\WCF;
 
-class MultilingualMessageForm extends MessageForm {
+/**
+ * MultilingualMessageForm is an abstract form implementation for a message with optional captcha support providing some fields (and especially redactor-fields) using I18n.
+ *
+ * @author	Florian Gail
+ * @copyright	2016-2017 Florian Gail <https://www.mysterycode.de/>
+ * @license	Kostenlose Plugins <https://downloads.mysterycode.de/license/6-kostenlose-plugins/>
+ * @package	de.mysterycode.wcf.redactor.extended
+ */
+abstract class MultilingualMessageForm extends MessageForm {
 	/**
 	 * list of multilingual fields (input and textarea)
 	 * @var string[]
