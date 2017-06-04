@@ -247,6 +247,6 @@ abstract class MultilingualMessageForm extends MessageForm {
 	public function assignVariables() {
 		parent::assignVariables();
 		
-		I18nHandler::getInstance()->assignVariables();
+		I18nHandler::getInstance()->assignVariables(!empty($_POST) || $this->action == 'add');
 	}
 }
