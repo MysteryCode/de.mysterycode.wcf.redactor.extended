@@ -3,8 +3,8 @@
 	<packageinformation>
 		<packagename>Redactor: Extension</packagename>
 		<packagedescription><![CDATA[Implements some features like multilingual support.]]></packagedescription>
-		<version>1.0.0 Beta 1</version>
-		<date>2017-04-17</date>
+		<version>1.0.0</version>
+		<date>2017-06-04</date>
 	</packageinformation>
 
 	<authorinformation>
@@ -26,7 +26,7 @@
 		<instruction type="template" />
 	</instructions>
 
-	<instructions type="update" fromversion="1.0.0 Alpha 1">
+	<instructions type="update" fromversion="1.0.0 Beta 1">
 		<instruction type="file" />
 	</instructions>
 </package>
