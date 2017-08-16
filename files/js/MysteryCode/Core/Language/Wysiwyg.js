@@ -230,7 +230,9 @@ define(['Core', 'Dictionary', 'Language', 'ObjectMap', 'StringUtil', 'Dom/Traver
 					// cs
 					var redactor = $('#' + elementId).data('redactor');
 					if (redactor !== undefined) {
-						$('#' + elementId).redactor('code.set', values.get(languageId));
+						$('#' + elementId).redactor('code.set', (values.has(languageId)) ? values.get(languageId) : '');
+					} else {
+						$('#' + elementId).val((values.has(languageId)) ? values.get(languageId) : '');
 					}
 					// ce
 				}
