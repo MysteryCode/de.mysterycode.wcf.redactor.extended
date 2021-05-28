@@ -2,9 +2,12 @@
 <package name="de.mysterycode.wcf.redactor.extended" xmlns="http://www.woltlab.com" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.woltlab.com http://www.woltlab.com/XSD/maelstrom/package.xsd">
 	<packageinformation>
 		<packagename>Redactor: Extension</packagename>
+		<packagename language="de">Redactor: Erweiterungspaket</packagename>
 		<packagedescription><![CDATA[Implements some features like multilingual support.]]></packagedescription>
-		<version>1.0.1</version>
-		<date>2017-11-05</date>
+		<packagedescription language="de"><![CDATA[Implementiert einige nüztzliche Features wie multilinguale Wysiwyg-Felder.]]></packagedescription>
+
+		<version>1.1.0</version>
+		<date>2019-08-14</date>
 	</packageinformation>
 
 	<authorinformation>
@@ -13,34 +16,16 @@
 	</authorinformation>
 
 	<compatibility>
-		<api version="2018" />
-		<api version="2017" />
+		<api version="2019" />
 	</compatibility>
 
 	<requiredpackages>
-		<requiredpackage minversion="3.0.0"><![CDATA[com.woltlab.wcf]]></requiredpackage>
+		<requiredpackage minversion="5.2.0 Alpha 1"><![CDATA[com.woltlab.wcf]]></requiredpackage>
 	</requiredpackages>
-
-	<excludedpackages>
-		<excludedpackage version="3.2.0 Alpha 1"><![CDATA[com.woltlab.wcf]]></excludedpackage>
-	</excludedpackages>
 
 	<instructions type="install">
 		<instruction type="file" />
 		<instruction type="acpTemplate" />
 		<instruction type="template" />
-	</instructions>
-
-	<instructions type="update" fromversion="1.0.0 Beta 1">
-		<instruction type="file" />
-	</instructions>
-	<instructions type="update" fromversion="1.0.0">
-		<instruction type="file" />
-	</instructions>
-	<instructions type="update" fromversion="1.0.0 pl 1">
-		<instruction type="file" />
-	</instructions>
-	<instructions type="update" fromversion="1.0.0 pl 2">
-		<instruction type="file" />
 	</instructions>
 </package>
